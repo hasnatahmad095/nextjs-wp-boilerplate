@@ -171,4 +171,4 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-Made with ❤️ for the headless WordPress community
+Made with ❤️ for the Headless WordPress Community
