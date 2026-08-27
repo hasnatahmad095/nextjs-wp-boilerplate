@@ -96,14 +96,14 @@ add_action( 'wp_insert_post', 'auto_build_request', 10, 2 );
 function auto_build_request($post_id, $post) {
     $post_type = get_post_type( $post_id );
     $allowed_post_types = ['post', 'page']; // Add your custom post types here
-    
+
     if ( $post->post_status == 'publish' && in_array($post_type, $allowed_post_types) ) {
         $data = json_encode(['force_build' => true]);
-        
+
         // Replace with your Vercel deployment webhook URL
         // Find it in: Vercel Dashboard > Project Settings > Git > Deploy Hooks
         $url = 'YOUR_VERCEL_DEPLOYMENT_WEBHOOK_URL';
-        
+
         $args = array(
             'body' => $data,
             'headers' => array(
@@ -111,9 +111,9 @@ function auto_build_request($post_id, $post) {
             ),
             'timeout' => 30,
         );
-        
+
         $response = wp_remote_post($url, $args);
-        
+
         if ( is_wp_error( $response ) ) {
             error_log('Auto-deployment failed: ' . $response->get_error_message());
         }
@@ -128,19 +128,19 @@ add_action( 'wp_insert_post', 'auto_build_request', 10, 2 );
 function auto_build_request($post_id, $post) {
     $post_type = get_post_type( $post_id );
     $allowed_post_types = ['post', 'page']; // Add your custom post types here
-    
+
     if ( $post->post_status == 'publish' && in_array($post_type, $allowed_post_types) ) {
         // Replace with your Netlify build hook URL
         // Find it in: Netlify Dashboard > Site Settings > Build & Deploy > Build Hooks
         $url = 'YOUR_NETLIFY_BUILD_HOOK_URL';
-        
+
         $args = array(
             'method' => 'POST',
             'timeout' => 30,
         );
-        
+
         $response = wp_remote_post($url, $args);
-        
+
         if ( is_wp_error( $response ) ) {
             error_log('Auto-deployment failed: ' . $response->get_error_message());
         }
@@ -148,7 +148,8 @@ function auto_build_request($post_id, $post) {
 }
 ```
 
-**Note:** 
+**Note:**
+
 - Replace `YOUR_VERCEL_DEPLOYMENT_WEBHOOK_URL` or `YOUR_NETLIFY_BUILD_HOOK_URL` with your actual webhook URL
 - Update `$allowed_post_types` array to include your custom post types
 - This function is optional and only needed if you want automatic rebuilds on content publish
@@ -188,4 +189,3 @@ function auto_build_request($post_id, $post) {
 - [ACF REST API Integration](https://www.advancedcustomfields.com/resources/wp-rest-api-integration/)
 - [Vercel Deploy Hooks](https://vercel.com/docs/concepts/git/deploy-hooks)
 - [Netlify Build Hooks](https://docs.netlify.com/configure-builds/build-hooks/)
-

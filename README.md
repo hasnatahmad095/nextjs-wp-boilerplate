@@ -1,167 +1,206 @@
 # Next.js WordPress Headless CMS Boilerplate
 
-A modern, production-ready boilerplate for building headless WordPress websites with Next.js. This boilerplate provides a solid foundation for connecting Next.js frontend with WordPress REST API as a headless CMS.
+A modern, production-ready boilerplate for building headless WordPress sites with
+Next.js. It connects a Next.js frontend to the **WordPress REST API** using the
+**Pages Router** with Static Site Generation (SSG) and Incremental Static
+Regeneration (ISR).
 
 ## ✨ Features
 
-- **Next.js 14** - Latest Next.js with App Router support
-- **WordPress REST API** - Seamless integration with WordPress headless CMS
-- **Tailwind CSS** - Utility-first CSS framework for rapid UI development
-- **Static Site Generation (SSG)** - Pre-rendered pages for optimal performance
-- **Incremental Static Regeneration (ISR)** - Automatic content updates
-- **TypeScript Ready** - Easy to migrate to TypeScript if needed
-- **Modern Tooling** - ESLint, Prettier, and more configured
-- **Custom Post Types Support** - Ready for projects, regions, and custom content types
-- **Dynamic Routes** - Built-in support for dynamic pages and slugs
+- **Next.js 16** (Pages Router) with Turbopack
+- **React 19**
+- **Tailwind CSS 4** — CSS-first config, no `tailwind.config.js` needed
+- **WordPress REST API** — clean, centralized client (`src/lib/wordpress.js`)
+- **SSG + ISR** — pre-rendered pages that revalidate automatically
+- **Custom Post Types** — ready-made `project` and `region` examples with dynamic routes
+- **Path aliases** — import from `@/…` (maps to `src/`)
+- **Modern tooling** — ESLint 9 (flat config) + Prettier with Tailwind class sorting
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js 20.18.1 or higher
-- npm or yarn
-- WordPress installation with REST API enabled
+- **Node.js 20.9 or higher**
+- npm (or yarn/pnpm)
+- A WordPress install with the REST API enabled
 
 ### Installation
 
 1. **Clone the repository**
 
-```bash
-git clone https://github.com/yourusername/nextjs-wp-boilerplate.git
-cd nextjs-wp-boilerplate
-```
+   ```bash
+   git clone https://github.com/yourusername/nextjs-wp-boilerplate.git
+   cd nextjs-wp-boilerplate
+   ```
 
 2. **Install dependencies**
 
-```bash
-npm install
-```
+   ```bash
+   npm install
+   ```
 
 3. **Configure environment variables**
 
-Create a `.env.local` file in the root directory:
+   Copy the example file and fill in your WordPress URL:
 
-```env
-NEXT_PUBLIC_API_BASE_URL=https://your-wordpress-site.com
-```
+   ```bash
+   cp .env.example .env.local
+   ```
+
+   ```env
+   NEXT_PUBLIC_API_BASE_URL=https://your-wordpress-site.com
+   ```
 
 4. **Configure WordPress image domains** (optional)
 
-Edit `next.config.mjs` and add your WordPress domain to the `images.domains` array:
+   To use `next/image` with WordPress-hosted media, add your domain(s) to
+   `remotePatterns` in `next.config.mjs`:
 
-```javascript
-images: {
-  domains: ['your-wordpress-site.com']
-}
-```
+   ```javascript
+   images: {
+     remotePatterns: [
+       { protocol: "https", hostname: "your-wordpress-site.com" },
+     ],
+   }
+   ```
 
 5. **Start the development server**
 
-```bash
-npm run dev
-```
+   ```bash
+   npm run dev
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) to see your application.
+   Open [http://localhost:3000](http://localhost:3000).
 
 ## 📁 Project Structure
 
 ```
 nextjs-wp-boilerplate/
 ├── src/
-│   ├── fonts/          # Custom fonts
-│   ├── pages/          # Next.js pages
-│   │   ├── projects/   # Project pages
-│   │   └── regions/    # Region pages
-│   └── styles/         # Global styles
-├── public/             # Static assets
-├── next.config.mjs     # Next.js configuration
-├── tailwind.config.js  # Tailwind CSS configuration
-└── package.json        # Dependencies
+│   ├── components/      # Shared UI (Layout, and your Header/Footer/etc.)
+│   ├── fonts/           # Self-hosted Montserrat fonts
+│   ├── lib/
+│   │   └── wordpress.js # Centralized WordPress REST API client + helpers
+│   ├── pages/           # Next.js Pages Router routes
+│   │   ├── _app.js
+│   │   ├── index.js     # Home
+│   │   ├── projects.js  # Projects list
+│   │   ├── projects/[slug].js
+│   │   ├── regions.js   # Regions list
+│   │   └── regions/[slug].js
+│   └── styles/
+│       └── globals.css  # Tailwind v4 entry + theme tokens
+├── .env.example         # Environment variable template
+├── eslint.config.mjs    # ESLint flat config
+├── next.config.mjs      # Next.js configuration
+├── postcss.config.mjs   # Tailwind v4 PostCSS plugin
+└── package.json
 ```
 
-## 🔧 Configuration
+## 🔌 Fetching data from WordPress
 
-### WordPress Setup
+All REST calls go through `src/lib/wordpress.js`, a pre-configured Axios client
+pointed at `<NEXT_PUBLIC_API_BASE_URL>/wp-json/wp/v2`. Available helpers:
 
-1. **Enable REST API** - WordPress REST API is enabled by default in WordPress 4.7+
+| Helper                       | Description                                                   |
+| ---------------------------- | ------------------------------------------------------------- |
+| `getPageById(id)`            | Fetch a single page by numeric ID                             |
+| `getEntries(type, params)`   | Fetch a list for any post type (`post`, `page`, `project`, …) |
+| `getEntryBySlug(type, slug)` | Fetch one entry of a post type by slug                        |
+| `getAllSlugs(type)`          | All slugs for a post type — handy for `getStaticPaths`        |
 
-2. **Install WordPress Functions** - See `WORDPRESS_SETUP.md` for WordPress functions to add to your theme's `functions.php`:
-   - ACF fields support in REST API
-   - Featured image URL endpoint
-   - Auto-deployment hooks (optional)
+Example (`getStaticProps`):
 
-3. **Custom Post Types** - The boilerplate includes examples for:
-   - `project` - Custom post type for projects
-   - `region` - Custom post type for regions
+```javascript
+import { getEntries } from "@/lib/wordpress";
 
-### Page Configuration
+export async function getStaticProps() {
+  const projects = await getEntries("project", { per_page: 100 });
+  return { props: { projects }, revalidate: 3600 };
+}
+```
 
-Update the page IDs in your page files to match your WordPress pages:
+### Page IDs
 
-- `src/pages/index.js` - Home page ID
-- `src/pages/projects.js` - Projects page ID
-- `src/pages/regions.js` - Regions page ID
+The example pages read optional WordPress page IDs from the environment
+(`NEXT_PUBLIC_HOME_PAGE_ID`, `NEXT_PUBLIC_PROJECTS_PAGE_ID`,
+`NEXT_PUBLIC_REGIONS_PAGE_ID`). Set them in `.env.local`, or edit the fallback
+constants at the top of each page file.
 
-Replace hardcoded IDs with environment variables or configuration constants.
+## 🎨 Styling (Tailwind CSS 4)
+
+Tailwind v4 is configured entirely in CSS. Theme tokens live in the `@theme`
+block of `src/styles/globals.css`:
+
+```css
+@import "tailwindcss";
+
+@theme {
+  --color-theme-pink: #ec145b; /* → bg-theme-pink, text-theme-pink, … */
+  --font-montserrat: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+}
+```
+
+There is no `tailwind.config.js` and no `autoprefixer` — Tailwind v4 handles
+content detection and vendor prefixing automatically.
+
+## 🧩 WordPress Setup
+
+WordPress REST API is enabled by default in WordPress 4.7+. See
+[`WORDPRESS_SETUP.md`](WORDPRESS_SETUP.md) for optional `functions.php` snippets:
+
+- ACF fields with image URLs and alt text in REST responses
+- A featured-image URL field (`fimg_url`)
+- Auto-deploy webhooks for Vercel / Netlify
+
+Custom post types must be registered with `'show_in_rest' => true` to appear in
+the REST API.
 
 ## 📦 Tech Stack
 
-- **Framework:** Next.js 14.1.0
-- **React:** 18.3.1
-- **Styling:** Tailwind CSS 3.4.18
-- **HTTP Client:** Axios 1.13.2
-- **Icons:** React Icons 5.5.0
-- **Animations:** AOS 2.3.4
-- **Sliders:** Swiper 11.2.10
-- **Code Quality:** ESLint, Prettier
+| Package      | Version         |
+| ------------ | --------------- |
+| Next.js      | 16              |
+| React        | 19              |
+| Tailwind CSS | 4               |
+| Axios        | 1.x             |
+| Swiper       | 14              |
+| React Icons  | 5.x             |
+| ESLint       | 9 (flat config) |
+| Prettier     | 3.x             |
+
+> `swiper` and `react-icons` are included as conveniences and are not yet used
+> by the example pages — import them where you need them, or remove them.
 
 ## 🛠️ Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
+- `npm run dev` — start the development server
+- `npm run build` — build for production
+- `npm run start` — start the production server
+- `npm run lint` — run ESLint
+- `npm run format` — format with Prettier (sorts Tailwind classes)
 
 ## 🌐 Deployment
 
-### Vercel (Recommended)
+### Vercel (recommended)
 
 1. Push your code to GitHub
-2. Import your repository in Vercel
-3. Add environment variables
-4. Deploy!
+2. Import the repository in Vercel
+3. Add the `NEXT_PUBLIC_API_BASE_URL` environment variable
+4. Deploy
 
-### Other Platforms
+### Other platforms
 
-This boilerplate can be deployed to any platform that supports Next.js:
-- Netlify
-- AWS Amplify
-- DigitalOcean App Platform
-- Railway
-- Or any Node.js hosting
-
-## 📝 WordPress Functions
-
-See `WORDPRESS_SETUP.md` for WordPress functions that enhance the REST API:
-- ACF fields integration
-- Featured image URLs
-- Alt text support for images
-- Auto-deployment hooks (optional)
+Deploys anywhere Next.js runs — Netlify, AWS Amplify, DigitalOcean App Platform,
+Railway, or any Node.js host.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome — feel free to open an issue or a pull request.
 
 ## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
-
-## 🙏 Acknowledgments
-
-- [Next.js](https://nextjs.org/) - The React framework for production
-- [WordPress](https://wordpress.org/) - The world's most popular CMS
-- [Tailwind CSS](https://tailwindcss.com/) - A utility-first CSS framework
-- [Swiper](https://swiperjs.com/) - Modern touch slider
+Released under the [MIT License](LICENSE).
 
 ## 📚 Resources
 
@@ -171,4 +210,4 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-Made with ❤️ for the Headless WordPress Community
+Made with ❤️ for the Headless WordPress community.

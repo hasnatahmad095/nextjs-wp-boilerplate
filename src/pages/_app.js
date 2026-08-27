@@ -1,15 +1,11 @@
-import React from "react";
-import { AppProps } from "next/app";
-import Layout from "./layout";
-import "../fonts/fonts.css";
-import "../styles/globals.css";
+import "@/fonts/fonts.css";
+import "@/styles/globals.css";
+import Layout from "@/components/Layout";
 
-const MyApp = ({ Component, pageProps }) => {
+export default function MyApp({ Component, pageProps }) {
   return (
     <Layout>
       <Component {...pageProps} />
     </Layout>
   );
-};
-
-export default MyApp;
+}

@@ -1,47 +1,54 @@
-import axios from "axios";
 import Head from "next/head";
-import React from "react";
+import { getPageById } from "@/lib/wordpress";
 
-export default function Index({ HomeData }) {
+// The WordPress page ID to use as the home page.
+// Set NEXT_PUBLIC_HOME_PAGE_ID in .env.local, or replace the fallback below.
+const HOME_PAGE_ID =
+  process.env.NEXT_PUBLIC_HOME_PAGE_ID || "YOUR_HOME_PAGE_ID";
+
+export default function Home({ page }) {
+  const title = page?.title?.rendered || "Next.js + Headless WordPress";
 
   return (
     <>
       <Head>
         <title>Home</title>
+        <meta
+          name="description"
+          content="A Next.js headless WordPress boilerplate powered by the REST API."
+        />
       </Head>
 
-      <section>
-        <h1>
-          Hello
-          {/* {
-            HomeData.acf.banner_section.content_main_section.main_title_column
-              .main_title
-          } */}
-        </h1>
+      <section className="container py-16">
+        <h1>{title}</h1>
+
+        {page?.content?.rendered ? (
+          <div
+            className="paragraph mt-6"
+            dangerouslySetInnerHTML={{ __html: page.content.rendered }}
+          />
+        ) : (
+          <p className="mt-6">
+            Set <code>NEXT_PUBLIC_API_BASE_URL</code> and your page ID to load
+            content from WordPress.
+          </p>
+        )}
       </section>
     </>
   );
 }
 
-// Get Static Props
 export async function getStaticProps() {
-  let HomeData = {};
+  let page = null;
 
   try {
-    // Replace 'YOUR_HOME_PAGE_ID' with your actual WordPress home page ID
-    // You can find the page ID in WordPress admin or use the page slug instead
-    const homeresponse = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/wp-json/wp/v2/pages/YOUR_HOME_PAGE_ID`
-    );
-    HomeData = homeresponse.data;
+    page = await getPageById(HOME_PAGE_ID);
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching home page:", error.message);
   }
 
   return {
-    props: {
-      HomeData,
-    },
-    revalidate: 3600, // Revalidate every hour
+    props: { page },
+    revalidate: 3600, // Incremental Static Regeneration: rebuild at most hourly.
   };
 }

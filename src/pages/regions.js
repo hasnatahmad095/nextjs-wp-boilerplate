@@ -1,69 +1,69 @@
-import React, { useState } from "react";
-import Link from "next/link";
 import Head from "next/head";
-import axios from "axios";
+import Link from "next/link";
+import { getEntries, getPageById } from "@/lib/wordpress";
 
-const Regions = ({ AllRegionsData }) => {
+// The WordPress page ID for the Regions landing page (optional — used to pull a
+// curated list from an ACF field). Falls back to all published regions.
+const REGIONS_PAGE_ID =
+  process.env.NEXT_PUBLIC_REGIONS_PAGE_ID || "YOUR_REGIONS_PAGE_ID";
+
+export default function Regions({ page, regions }) {
+  const title = page?.title?.rendered || "Regions";
+
   return (
     <>
       <Head>
-        <title></title>
+        <title>{title}</title>
       </Head>
-      {/* Banner */}
-      <section className="w-full h-max container py-16 md:py-36">
-        {AllRegionsData.map((item, i) => {
-          return (
-            <>
-              <Link href={`/regions/${item.slug}`}>
-                <h3>{item.title.rendered}</h3>
-              </Link>
-            </>
-          );
-        })}
+
+      <section className="container py-16 md:py-36">
+        <h1>{title}</h1>
+
+        {regions.length === 0 ? (
+          <p className="mt-6">
+            No regions found. Connect WordPress and register a{" "}
+            <code>region</code> post type to see content here.
+          </p>
+        ) : (
+          <ul className="mt-8 space-y-4">
+            {regions.map((region) => (
+              <li key={region.id}>
+                <Link href={`/regions/${region.slug}`}>
+                  <h3>{region.title.rendered}</h3>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </>
   );
-};
+}
 
-// Get Static Props
 export async function getStaticProps() {
-  let RegionData = {};
-  let AllRegionsData = [];
+  let page = null;
+  let regions = [];
 
   try {
-    // Replace 'YOUR_REGIONS_PAGE_ID' with your actual WordPress regions page ID
-    const regionresponse = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/wp-json/wp/v2/pages/YOUR_REGIONS_PAGE_ID`
-    );
-    RegionData = regionresponse.data;
-
-    // Fetch regions from ACF field (adjust field name if different)
-    const allregionsResponse = regionresponse.data.acf?.all_regions || [];
-    const allregionsIds = allregionsResponse.join(",");
-    
-    if (allregionsIds) {
-      const allregionsIdsRes = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/wp-json/wp/v2/region?include=${allregionsIds}`
-      );
-      AllRegionsData = allregionsIdsRes.data;
-    } else {
-      // Alternative: Fetch all regions if not using ACF
-      // const allregionsIdsRes = await axios.get(
-      //   `${process.env.NEXT_PUBLIC_API_BASE_URL}/wp-json/wp/v2/region`
-      // );
-      // AllRegionsData = allregionsIdsRes.data;
-    }
+    page = await getPageById(REGIONS_PAGE_ID);
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching regions page:", error.message);
+  }
+
+  try {
+    // ACF `all_regions` is expected to be an array of region IDs.
+    const ids = (page?.acf?.all_regions || []).filter(Boolean).join(",");
+
+    regions = await getEntries(
+      "region",
+      ids ? { include: ids } : { per_page: 100 }
+    );
+  } catch (error) {
+    console.error("Error fetching regions:", error.message);
   }
 
   return {
-    props: {
-      RegionData,
-      AllRegionsData,
-    },
-    revalidate: 3600, // Revalidate every hour
+    props: { page, regions },
+    revalidate: 3600,
   };
 }
-
-export default Regions;
