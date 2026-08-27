@@ -5,7 +5,7 @@ Next.js. It connects a Next.js frontend to the **WordPress REST API** using the
 **Pages Router** with Static Site Generation (SSG) and Incremental Static
 Regeneration (ISR).
 
-## ✨ Features
+## Features
 
 - **Next.js 16** (Pages Router) with Turbopack
 - **React 19**
@@ -16,7 +16,7 @@ Regeneration (ISR).
 - **Path aliases** — import from `@/…` (maps to `src/`)
 - **Modern tooling** — ESLint 9 (flat config) + Prettier with Tailwind class sorting
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -72,7 +72,7 @@ Regeneration (ISR).
 
    Open [http://localhost:3000](http://localhost:3000).
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 nextjs-wp-boilerplate/
@@ -97,17 +97,17 @@ nextjs-wp-boilerplate/
 └── package.json
 ```
 
-## 🔌 Fetching data from WordPress
+## Fetching data from WordPress
 
 All REST calls go through `src/lib/wordpress.js`, a pre-configured Axios client
 pointed at `<NEXT_PUBLIC_API_BASE_URL>/wp-json/wp/v2`. Available helpers:
 
-| Helper                       | Description                                                   |
-| ---------------------------- | ------------------------------------------------------------- |
-| `getPageById(id)`            | Fetch a single page by numeric ID                             |
-| `getEntries(type, params)`   | Fetch a list for any post type (`post`, `page`, `project`, …) |
-| `getEntryBySlug(type, slug)` | Fetch one entry of a post type by slug                        |
-| `getAllSlugs(type)`          | All slugs for a post type — handy for `getStaticPaths`        |
+| Helper | Description |
+| --- | --- |
+| `getPageById(id)` | Fetch a single page by numeric ID |
+| `getEntries(type, params)` | Fetch a list for any post type (`post`, `page`, `project`, …) |
+| `getEntryBySlug(type, slug)` | Fetch one entry of a post type by slug |
+| `getAllSlugs(type)` | All slugs for a post type — handy for `getStaticPaths` |
 
 Example (`getStaticProps`):
 
@@ -127,7 +127,7 @@ The example pages read optional WordPress page IDs from the environment
 `NEXT_PUBLIC_REGIONS_PAGE_ID`). Set them in `.env.local`, or edit the fallback
 constants at the top of each page file.
 
-## 🎨 Styling (Tailwind CSS 4)
+## Styling (Tailwind CSS 4)
 
 Tailwind v4 is configured entirely in CSS. Theme tokens live in the `@theme`
 block of `src/styles/globals.css`:
@@ -144,7 +144,7 @@ block of `src/styles/globals.css`:
 There is no `tailwind.config.js` and no `autoprefixer` — Tailwind v4 handles
 content detection and vendor prefixing automatically.
 
-## 🧩 WordPress Setup
+## WordPress Setup
 
 WordPress REST API is enabled by default in WordPress 4.7+. See
 [`WORDPRESS_SETUP.md`](WORDPRESS_SETUP.md) for optional `functions.php` snippets:
@@ -156,23 +156,23 @@ WordPress REST API is enabled by default in WordPress 4.7+. See
 Custom post types must be registered with `'show_in_rest' => true` to appear in
 the REST API.
 
-## 📦 Tech Stack
+## Tech Stack
 
-| Package      | Version         |
-| ------------ | --------------- |
-| Next.js      | 16              |
-| React        | 19              |
-| Tailwind CSS | 4               |
-| Axios        | 1.x             |
-| Swiper       | 14              |
-| React Icons  | 5.x             |
-| ESLint       | 9 (flat config) |
-| Prettier     | 3.x             |
+| Package | Version |
+| --- | --- |
+| Next.js | 16 |
+| React | 19 |
+| Tailwind CSS | 4 |
+| Axios | 1.x |
+| Swiper | 14 |
+| React Icons | 5.x |
+| ESLint | 9 (flat config) |
+| Prettier | 3.x |
 
 > `swiper` and `react-icons` are included as conveniences and are not yet used
 > by the example pages — import them where you need them, or remove them.
 
-## 🛠️ Available Scripts
+## Available Scripts
 
 - `npm run dev` — start the development server
 - `npm run build` — build for production
@@ -180,7 +180,7 @@ the REST API.
 - `npm run lint` — run ESLint
 - `npm run format` — format with Prettier (sorts Tailwind classes)
 
-## 🌐 Deployment
+## Deployment
 
 ### Vercel (recommended)
 
@@ -194,15 +194,15 @@ the REST API.
 Deploys anywhere Next.js runs — Netlify, AWS Amplify, DigitalOcean App Platform,
 Railway, or any Node.js host.
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome — feel free to open an issue or a pull request.
 
-## 📄 License
+## License
 
 Released under the [MIT License](LICENSE).
 
-## 📚 Resources
+## Resources
 
 - [Next.js Documentation](https://nextjs.org/docs)
 - [WordPress REST API Handbook](https://developer.wordpress.org/rest-api/)
