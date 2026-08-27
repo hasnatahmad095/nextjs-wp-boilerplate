@@ -1,49 +1,74 @@
-import axios from "axios";
-import React from "react";
+import Head from "next/head";
+import Link from "next/link";
+import { getEntries, getPageById } from "@/lib/wordpress";
 
-const projects = ({projectsData, allProjectsData}) => {
-  return <div>projects</div>;
-};
+// The WordPress page ID for the Projects landing page (optional — used to pull
+// a curated list from an ACF field). Falls back to all published projects.
+const PROJECTS_PAGE_ID =
+  process.env.NEXT_PUBLIC_PROJECTS_PAGE_ID || "YOUR_PROJECTS_PAGE_ID";
 
-// Get Static Props
+export default function Projects({ page, projects }) {
+  const title = page?.title?.rendered || "Projects";
+
+  return (
+    <>
+      <Head>
+        <title>{title}</title>
+      </Head>
+
+      <section className="container py-16">
+        <h1>{title}</h1>
+
+        {projects.length === 0 ? (
+          <p className="mt-6">
+            No projects found. Connect WordPress and register a{" "}
+            <code>project</code> post type to see content here.
+          </p>
+        ) : (
+          <ul className="mt-8 space-y-4">
+            {projects.map((project) => (
+              <li key={project.id}>
+                <Link href={`/projects/${project.slug}`}>
+                  <h3>{project.title.rendered}</h3>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </>
+  );
+}
+
 export async function getStaticProps() {
-  let projectsData = {};
-  let allProjectsData = [];
+  let page = null;
+  let projects = [];
 
   try {
-    // Replace 'YOUR_PROJECTS_PAGE_ID' with your actual WordPress projects page ID
-    const projectsResponse = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/wp-json/wp/v2/pages/YOUR_PROJECTS_PAGE_ID`
-    );
-    projectsData = projectsResponse.data;
-
-    // Fetch projects from ACF field (adjust field name if different)
-    const allProjectsResponse = projectsResponse.data.acf?.project_posts || [];
-    const allProjectsIds = allProjectsResponse.map((post) => post.ID).join(",");
-    
-    if (allProjectsIds) {
-      const allProjectsIdsRes = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/wp-json/wp/v2/project?include=${allProjectsIds}`
-      );
-      allProjectsData = allProjectsIdsRes.data;
-    } else {
-      // Alternative: Fetch all projects if not using ACF
-      // const allProjectsIdsRes = await axios.get(
-      //   `${process.env.NEXT_PUBLIC_API_BASE_URL}/wp-json/wp/v2/project`
-      // );
-      // allProjectsData = allProjectsIdsRes.data;
-    }
+    page = await getPageById(PROJECTS_PAGE_ID);
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching projects page:", error.message);
+  }
+
+  try {
+    // Option A: a curated list from an ACF relationship field (array of objects
+    // with an `ID`). Option B (fallback): every published `project`.
+    const acfProjects = page?.acf?.project_posts || [];
+    const ids = acfProjects
+      .map((item) => item.ID)
+      .filter(Boolean)
+      .join(",");
+
+    projects = await getEntries(
+      "project",
+      ids ? { include: ids } : { per_page: 100 }
+    );
+  } catch (error) {
+    console.error("Error fetching projects:", error.message);
   }
 
   return {
-    props: {
-      projectsData,
-      allProjectsData,
-    },
-    revalidate: 3600, // Revalidate every hour
+    props: { page, projects },
+    revalidate: 3600,
   };
 }
-
-export default projects;
