@@ -208,6 +208,8 @@ Released under the [MIT License](LICENSE).
 - [WordPress REST API Handbook](https://developer.wordpress.org/rest-api/)
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs)
 
----
+## Author
 
-Made with ❤️ for the Headless WordPress community.
+Built and maintained by [Hasnat Ahmad](https://www.devhasnatahmad.com/). Need help with a project? [Get in touch](https://www.devhasnatahmad.com/contact).
+
+If this project saved you time, please give it a ⭐ on GitHub.
